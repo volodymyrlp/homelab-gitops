@@ -44,7 +44,7 @@ data:
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 } ] } }, "overrides": [] },
           "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "auto" },
-          "targets": [ { "refId": "A", "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "100 * sum(rate(flask_http_request_total{namespace=\"url-shortener\", status=~\"5..\"}[5m])) / sum(rate(flask_http_request_total{namespace=\"url-shortener\"}[5m]))" } ]
+          "targets": [ { "refId": "A", "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "100 * (sum(rate(flask_http_request_total{namespace=\"url-shortener\", status=~\"5..\"}[5m])) or vector(0)) / sum(rate(flask_http_request_total{namespace=\"url-shortener\"}[5m]))" } ]
         },
         {
           "type": "stat", "title": "Latency p95",
