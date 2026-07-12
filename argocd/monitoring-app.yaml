@@ -74,6 +74,11 @@ spec:
             ingressClassName: traefik
             hosts:
               - grafana.homelab
+          additionalDataSources:
+            - name: Loki
+              type: loki
+              access: proxy
+              url: http://loki.loki.svc.cluster.local:3100
           resources:
             requests:
               cpu: 50m
