@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "timezone": "Europe/Kyiv",
+  "schedule": ["* 0-6 * * 1"],
+  "prConcurrentLimit": 3,
+  "kubernetes": {
+    "fileMatch": ["apps/.+\\.ya?ml$"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "ArgoCD Application Helm chart versions",
+      "fileMatch": ["argocd/.+-app\\.ya?ml$"],
+      "matchStrings": [
+        "repoURL:\\s*(?<registryUrl>\\S+)\\s+chart:\\s*(?<depName>\\S+)\\s+targetRevision:\\s*(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "helm"
+    }
+  ]
+}

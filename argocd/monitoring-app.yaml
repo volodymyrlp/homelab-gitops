@@ -102,6 +102,10 @@ spec:
         grafana:
           nodeSelector:
             kubernetes.io/hostname: k3s-2
+          grafana.ini:
+            auth.anonymous:
+              enabled: true
+              org_role: Viewer
           admin:
             existingSecret: grafana-admin
             userKey: admin-user
