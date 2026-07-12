@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
         - name: url-shortener
-          image: ghcr.io/volodymyrlp/url-shortener:latest
+          image: ghcr.io/volodymyrlp/url-shortener:ff0358d5b1727d2f147288b938d6ecf26359ffd4
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
           readinessProbe:
