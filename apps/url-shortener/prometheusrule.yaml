@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: url-shortener-alerts
+  namespace: url-shortener
+spec:
+  groups:
+    - name: url-shortener.availability
+      rules:
+        - alert: UrlShortenerTargetAbsent
+          expr: absent(up{job="url-shortener"}) == 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "url-shortener disappeared from Prometheus"
+            description: "No url-shortener target has been scraped for 2 minutes - the service was deleted or the whole app is down."
+        - alert: UrlShortenerReplicaDown
+          expr: up{job="url-shortener"} == 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "url-shortener replica is not responding"
+            description: "Pod {{ $labels.pod }} has not served /metrics for 2 minutes."
+        - alert: UrlShortenerReplicasLow
+          expr: kube_deployment_status_replicas_available{namespace="url-shortener", deployment="url-shortener"} < 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "url-shortener running fewer than 2 replicas"
+            description: "Only {{ $value }} replicas available over the last 5 minutes - a node may be down or a rollout is stuck."
+        - alert: MysqlDown
+          expr: kube_deployment_status_replicas_available{namespace="url-shortener", deployment="mysql"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "MySQL is down"
+            description: "0 available mysql replicas for 2 minutes - the app cannot read or write short links."
