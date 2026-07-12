@@ -33,6 +33,20 @@ spec:
             reject_old_samples_max_age: 168h
           analytics:
             reporting_enabled: false
+          rulerConfig:
+            wal:
+              dir: /var/loki/ruler-wal
+            storage:
+              type: local
+              local:
+                directory: /etc/loki/rules
+            rule_path: /tmp/loki/scratch
+            alertmanager_url: http://monitoring-kube-prometheus-alertmanager.monitoring:9093
+            enable_alertmanager_v2: true
+            ring:
+              kvstore:
+                store: inmemory
+            enable_api: true
         singleBinary:
           replicas: 1
           persistence:
@@ -70,6 +84,23 @@ spec:
               installOperator: false
           serviceMonitor:
             enabled: false
+        ruler:
+          enabled: true
+          directories:
+            fake:
+              url-shortener.yaml: |
+                groups:
+                  - name: url-shortener-logs
+                    rules:
+                      - alert: UrlShortenerErrorLogSpike
+                        expr: |
+                          sum(rate({namespace="url-shortener"} |= "error" != "GET /health" [5m])) > 0.2
+                        for: 5m
+                        labels:
+                          severity: warning
+                        annotations:
+                          summary: "url-shortener error log spike"
+                          description: "More than 0.2 error log lines/sec (excluding health checks) over the last 5 minutes."
   destination:
     server: https://kubernetes.default.svc
     namespace: loki
