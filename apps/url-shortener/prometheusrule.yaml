@@ -39,3 +39,29 @@ spec:
           annotations:
             summary: "MySQL is down"
             description: "0 available mysql replicas for 2 minutes - the app cannot read or write short links."
+    - name: url-shortener.quality
+      rules:
+        - alert: UrlShortenerHighErrorRate
+          expr: 100 * sum(rate(flask_http_request_total{namespace="url-shortener", status=~"5.."}[5m])) / sum(rate(flask_http_request_total{namespace="url-shortener"}[5m])) > 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "url-shortener error rate above 5%"
+            description: "{{ $value | printf \"%.1f\" }}% of requests returned 5xx over the last 5 minutes."
+        - alert: UrlShortenerHighLatency
+          expr: histogram_quantile(0.95, sum by(le)(rate(flask_http_request_duration_seconds_bucket{namespace="url-shortener"}[5m]))) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "url-shortener p95 latency above 500ms"
+            description: "95th percentile request latency is {{ $value | printf \"%.3f\" }}s over the last 10 minutes."
+        - alert: UrlShortenerPVCFillingUp
+          expr: kubelet_volume_stats_available_bytes{namespace="url-shortener"} / kubelet_volume_stats_capacity_bytes{namespace="url-shortener"} < 0.15
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "url-shortener PVC almost full"
+            description: "PVC {{ $labels.persistentvolumeclaim }} has less than 15% free space left."
