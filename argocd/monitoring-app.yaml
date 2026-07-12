@@ -100,6 +100,10 @@ spec:
                       {{ .Annotations.description }}
                       {{ end }}
         grafana:
+          admin:
+            existingSecret: grafana-admin
+            userKey: admin-user
+            passwordKey: admin-password
           ingress:
             enabled: true
             ingressClassName: traefik
