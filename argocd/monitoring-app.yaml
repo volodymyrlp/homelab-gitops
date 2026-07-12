@@ -62,12 +62,43 @@ spec:
                       storage: 4Gi
         alertmanager:
           alertmanagerSpec:
+            secrets:
+              - telegram-bot
             resources:
               requests:
                 cpu: 10m
                 memory: 48Mi
               limits:
                 memory: 96Mi
+          config:
+            global:
+              resolve_timeout: 5m
+            route:
+              group_by:
+                - alertname
+                - namespace
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
+              receiver: telegram
+              routes:
+                - receiver: "null"
+                  matchers:
+                    - alertname = "Watchdog"
+            receivers:
+              - name: "null"
+              - name: telegram
+                telegram_configs:
+                  - bot_token_file: /etc/alertmanager/secrets/telegram-bot/token
+                    chat_id: 1006985004
+                    parse_mode: HTML
+                    send_resolved: true
+                    message: |-
+                      {{ range .Alerts }}{{ if eq .Status "firing" }}🔴 <b>FIRING</b>{{ else }}✅ <b>RESOLVED</b>{{ end }} — <b>{{ .Labels.alertname }}</b>
+                      severity: {{ .Labels.severity }}{{ if .Labels.namespace }} | ns: {{ .Labels.namespace }}{{ end }}{{ if .Labels.pod }} | pod: {{ .Labels.pod }}{{ end }}
+                      {{ .Annotations.summary }}
+                      {{ .Annotations.description }}
+                      {{ end }}
         grafana:
           ingress:
             enabled: true
