@@ -44,6 +44,8 @@ spec:
     metadata:
       labels:
         app: litellm
+      annotations:
+        checksum/config: "fc3f9b8c4127f915"
     spec:
       containers:
         - name: litellm
