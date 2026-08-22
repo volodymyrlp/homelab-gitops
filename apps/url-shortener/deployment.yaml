@@ -4,6 +4,7 @@ metadata:
   name: url-shortener
   namespace: url-shortener
 spec:
+  replicas: 0
   selector:
     matchLabels:
       app: url-shortener
