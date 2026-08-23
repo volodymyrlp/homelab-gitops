@@ -26,6 +26,8 @@ spec:
           env:
             - name: ENABLE_PERSISTENT_CONFIG
               value: "false"
+            - name: ENABLE_SIGNUP
+              value: "false"
             - name: ENABLE_API_KEY
               value: "true"
             - name: ENABLE_OLLAMA_API
