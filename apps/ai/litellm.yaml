@@ -23,6 +23,8 @@ data:
     litellm_settings:
       drop_params: true
       request_timeout: 600
+      callbacks: ["prometheus"]
+      require_auth_for_metrics_endpoint: false
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY
 ---
@@ -45,7 +47,7 @@ spec:
       labels:
         app: litellm
       annotations:
-        checksum/config: "fc3f9b8c4127f915"
+        checksum/config: "c3d17fe4ee64c83b"
     spec:
       containers:
         - name: litellm
@@ -76,7 +78,7 @@ spec:
               path: /health/liveliness
               port: http
             periodSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               path: /health/liveliness
