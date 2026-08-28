@@ -1,0 +1,559 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-platform-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  llm-platform.json: |
+    {
+      "uid": "homelab-llm",
+      "title": "LLM Platform",
+      "tags": [
+        "llm",
+        "litellm",
+        "homelab"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "1m",
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "type": "datasource",
+            "label": "Prometheus",
+            "query": "prometheus",
+            "hide": 0,
+            "current": {}
+          }
+        ]
+      },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Запитів за хвилину",
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(rate(litellm_proxy_total_requests_metric_total[15m])) * 60"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Токенів за хвилину",
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(rate(litellm_total_tokens_metric_total[15m])) * 60"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Затримка p95",
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 30
+                  },
+                  {
+                    "color": "red",
+                    "value": 90
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(litellm_request_total_latency_metric_bucket[15m])))"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Стан бекенду",
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 1
+                  },
+                  {
+                    "color": "red",
+                    "value": 2
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "max(litellm_deployment_state)"
+            }
+          ],
+          "description": "0 — здоровий, 1 — часткова відмова, 2 — повна відмова."
+        },
+        {
+          "type": "timeseries",
+          "title": "Запити за моделями шлюзу",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 4
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (requested_model) (rate(litellm_proxy_total_requests_metric_total[15m])) * 60",
+              "legendFormat": "{{requested_model}}"
+            }
+          ],
+          "description": "requested_model — назва у шлюзі. Видно, як часто береш режим з міркуванням."
+        },
+        {
+          "type": "timeseries",
+          "title": "Токени: вхідні проти вихідних",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 4
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(rate(litellm_input_tokens_metric_total[15m])) * 60",
+              "legendFormat": "вхідні"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(rate(litellm_output_tokens_metric_total[15m])) * 60",
+              "legendFormat": "вихідні"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Затримка запиту",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 12
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(litellm_request_total_latency_metric_bucket[15m])))",
+              "legendFormat": "p50"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(litellm_request_total_latency_metric_bucket[15m])))",
+              "legendFormat": "p95"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Скільки додає шлюз",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 12
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(litellm_llm_api_latency_metric_bucket[15m])))",
+              "legendFormat": "час моделі"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(litellm_overhead_latency_metric_bucket[15m])))",
+              "legendFormat": "накладні витрати шлюзу"
+            }
+          ],
+          "description": "Різниця показує, скільки часу зʼїдає сам LiteLLM порівняно з роботою моделі на Mac."
+        },
+        {
+          "type": "timeseries",
+          "title": "Швидкість генерації",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 20
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "1 / histogram_quantile(0.50, sum by (le) (rate(litellm_deployment_latency_per_output_token_bucket[15m])))",
+              "legendFormat": "токенів/с"
+            }
+          ],
+          "description": "Орієнтир для qwen3:8b на M1 — близько 11 токенів/с."
+        },
+        {
+          "type": "timeseries",
+          "title": "Запити за кодом відповіді",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 20
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (status_code) (rate(litellm_proxy_total_requests_metric_total[15m])) * 60",
+              "legendFormat": "{{status_code}}"
+            }
+          ],
+          "description": "Усе, крім 200, означає помилку шлюзу або бекенду."
+        }
+      ]
+    }

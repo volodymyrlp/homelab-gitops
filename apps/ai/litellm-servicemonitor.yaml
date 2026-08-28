@@ -11,6 +11,6 @@ spec:
       app: litellm
   endpoints:
     - port: http
-      path: /metrics
+      path: /metrics/
       interval: 60s
       scrapeTimeout: 30s
